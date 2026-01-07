@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCASH 挖矿游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.2);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #00a8ff;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            color: #00a8ff;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #00a8ff;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(0, 168, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #00a8ff;
+        }
+
+        .stat-card h3 {
+            color: #ccc;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #00a8ff;
+        }
+
+        .mining-area {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        #mine-btn {
+            background: linear-gradient(45deg, #00a8ff, #0088cc);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        #mine-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 168, 255, 0.5);
+        }
+
+        #mine-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(45deg, #00a8ff, #00ff9d);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .upgrades {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .upgrade-card {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #444;
+            transition: all 0.3s ease;
+        }
+
+        .upgrade-card:hover {
+            border-color: #00a8ff;
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 168, 255, 0.2);
+        }
+
+        .upgrade-card h3 {
+            color: #00a8ff;
+            margin-bottom: 10px;
+        }
+
+        .upgrade-card .description {
+            color: #ccc;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .upgrade-card .price {
+            color: #00ff9d;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .upgrade-btn {
+            background: #0088cc;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s ease;
+        }
+
+        .upgrade-btn:hover {
+            background: #00a8ff;
+        }
+
+        .upgrade-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        /* 动画效果 */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SCASH 挖矿模拟器</h1>
+            <p>点击挖矿按钮获取 SCASH，升级算力提高收益！</p>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3>当前 SCASH 余额</h3>
+                <div class="value" id="balance">0.00</div>
+            </div>
+            <div class="stat-card">
+                <h3>当前算力 (H/s)</h3>
+                <div class="value" id="hashrate">1.00</div>
+            </div>
+            <div class="stat-card">
+                <h3>每点击收益</h3>
+                <div class="value" id="earn-per-click">0.10</div>
+            </div>
+            <div class="stat-card">
+                <h3>自动挖矿收益/秒</h3>
+                <div class="value" id="auto-earn">0.05</div>
+            </div>
+        </div>
+
+        <div class="mining-area">
+            <button id="mine-btn" class="pulse">开始挖矿</button>
+            <p>挖矿中... <span id="mining-progress-text">0%</span></p>
+            <div class="progress-container">
+                <div class="progress-bar" id="mining-progress"></div>
+            </div>
+        </div>
+
+        <h2 style="margin-bottom: 20px; color: #00a8ff;">算力升级</h2>
+        <div class="upgrades">
+            <div class="upgrade-card">
+                <h3>基础矿机</h3>
+                <p class="description">提升算力 0.5 H/s，增加每点击收益 0.05</p>
+                <p class="price">价格: <span id="upgrade1-price">5</span> SCASH</p>
+                <button class="upgrade-btn" id="upgrade1-btn">购买升级</button>
+            </div>
+            <div class="upgrade-card">
+                <h3>高级矿机</h3>
+                <p class="description">提升算力 2 H/s，增加每点击收益 0.2</p>
+                <p class="price">价格: <span id="upgrade2-price">20</span> SCASH</p>
+                <button class="upgrade-btn" id="upgrade2-btn">购买升级</button>
+            </div>
+            <div class="upgrade-card">
+                <h3>超级矿场</h3>
+                <p class="description">提升算力 10 H/s，增加每点击收益 1.0，开启自动挖矿</p>
+                <p class="price">价格: <span id="upgrade3-price">100</span> SCASH</p>
+                <button class="upgrade-btn" id="upgrade3-btn">购买升级</button>
+            </div>
+        </div>
+
+        <footer>
+            <p>SCASH 挖矿游戏 &copy; 2026 - 仅供娱乐使用</p>
+        </footer>
+    </div>
+
+    <script>
+        // 游戏状态管理
+        const gameState = {
+            balance: 0.0,          // SCASH 余额
+            hashrate: 1.0,         // 算力 (H/s)
+            earnPerClick: 0.1,     // 每点击收益
+            autoEarnRate: 0.0,     // 自动挖矿收益/秒
+            miningInProgress: false, // 是否正在挖矿
+            miningProgress: 0,     // 挖矿进度 (0-100)
+            miningDuration: 3,     // 挖矿时长(秒)
+            upgrades: {
+                1: { price: 5, hashrate: 0.5, earnPerClick: 0.05, autoEarn: 0, purchased: 0 },
+                2: { price: 20, hashrate: 2, earnPerClick: 0.2, autoEarn: 0, purchased: 0 },
+                3: { price: 100, hashrate: 10, earnPerClick: 1.0, autoEarn: 0.1, purchased: 0 }
+            }
+        };
+
+        // DOM 元素
+        const mineBtn = document.getElementById('mine-btn');
+        const miningProgressBar = document.getElementById('mining-progress');
+        const miningProgressText = document.getElementById('mining-progress-text');
+        const balanceDisplay = document.getElementById('balance');
+        const hashrateDisplay = document.getElementById('hashrate');
+        const earnPerClickDisplay = document.getElementById('earn-per-click');
+        const autoEarnDisplay = document.getElementById('auto-earn');
+        
+        // 升级按钮
+        const upgrade1Btn = document.getElementById('upgrade1-btn');
+        const upgrade2Btn = document.getElementById('upgrade2-btn');
+        const upgrade3Btn = document.getElementById('upgrade3-btn');
+        const upgrade1Price = document.getElementById('upgrade1-price');
+        const upgrade2Price = document.getElementById('upgrade2-price');
+        const upgrade3Price = document.getElementById('upgrade3-price');
+
+        // 更新显示
+        function updateDisplay() {
+            balanceDisplay.textContent = gameState.balance.toFixed(2);
+            hashrateDisplay.textContent = gameState.hashrate.toFixed(2);
+            earnPerClickDisplay.textContent = gameState.earnPerClick.toFixed(2);
+            autoEarnDisplay.textContent = gameState.autoEarnRate.toFixed(2);
+            
+            // 更新升级价格显示
+            upgrade1Price.textContent = gameState.upgrades[1].price.toFixed(2);
+            upgrade2Price.textContent = gameState.upgrades[2].price.toFixed(2);
+            upgrade3Price.textContent = gameState.upgrades[3].price.toFixed(2);
+            
+            // 禁用买不起的升级
+            upgrade1Btn.disabled = gameState.balance < gameState.upgrades[1].price;
+            upgrade2Btn.disabled = gameState.balance < gameState.upgrades[2].price;
+            upgrade3Btn.disabled = gameState.balance < gameState.upgrades[3].price;
+        }
+
+        // 开始挖矿
+        function startMining() {
+            if (gameState.miningInProgress) return;
+            
+            gameState.miningInProgress = true;
+            gameState.miningProgress = 0;
+            mineBtn.disabled = true;
+            
+            const miningInterval = setInterval(() => {
+                gameState.miningProgress += (100 / (gameState.miningDuration * 10));
+                miningProgressBar.style.width = `${gameState.miningProgress}%`;
+                miningProgressText.textContent = `${Math.floor(gameState.miningProgress)}%`;
+                
+                // 挖矿完成
+                if (gameState.miningProgress >= 100) {
+                    clearInterval(miningInterval);
+                    gameState.miningInProgress = false;
+                    gameState.balance += gameState.earnPerClick;
+                    mineBtn.disabled = false;
+                    miningProgressBar.style.width = '0%';
+                    miningProgressText.textContent = '0%';
+                    updateDisplay();
+                }
+            }, 100);
+        }
+
+        // 购买升级
+        function purchaseUpgrade(upgradeId) {
+            const upgrade = gameState.upgrades[upgradeId];
+            
+            // 检查余额
+            if (gameState.balance < upgrade.price) return;
+            
+            // 扣除余额
+            gameState.balance -= upgrade.price;
+            
+            // 应用升级效果
+            gameState.hashrate += upgrade.hashrate;
+            gameState.earnPerClick += upgrade.earnPerClick;
+            gameState.autoEarnRate += upgrade.autoEarn;
+            
+            // 升级价格上涨
+            upgrade.price *= 1.2;
+            upgrade.purchased++;
+            
+            updateDisplay();
+        }
+
+        // 自动挖矿
+        function autoMine() {
+            if (gameState.autoEarnRate > 0) {
+                gameState.balance += gameState.autoEarnRate / 10;
+                updateDisplay();
+            }
+        }
+
+        // 事件监听
+        mineBtn.addEventListener('click', startMining);
+        upgrade1Btn.addEventListener('click', () => purchaseUpgrade(1));
+        upgrade2Btn.addEventListener('click', () => purchaseUpgrade(2));
+        upgrade3Btn.addEventListener('click', () => purchaseUpgrade(3));
+
+        // 初始化
+        updateDisplay();
+        
+        // 每100ms执行一次自动挖矿
+        setInterval(autoMine, 100);
+    </script>
+</body>
+</html>
